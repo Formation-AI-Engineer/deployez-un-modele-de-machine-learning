@@ -1,0 +1,79 @@
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+
+# Distribution / packaging
+build/
+dist/
+*.egg-info/
+*.egg
+.eggs/
+wheels/
+pip-wheel-metadata/
+
+# Virtual environments
+.venv/
+venv/
+env/
+ENV/
+.python-version
+
+# Environment variables / secrets
+.env
+.env.*
+!.env.example
+*.pem
+*.key
+secrets/
+
+# Testing / coverage
+.pytest_cache/
+.coverage
+.coverage.*
+htmlcov/
+coverage.xml
+*.cover
+.tox/
+.nox/
+.mypy_cache/
+.ruff_cache/
+
+# Jupyter
+.ipynb_checkpoints/
+
+# IDE / editors
+.idea/
+.vscode/
+*.swp
+*.swo
+.DS_Store
+
+# Logs
+*.log
+logs/
+
+# Databases (local)
+*.sqlite
+*.sqlite3
+*.db
+
+# ML artifacts (large files — prefer Git LFS or external storage)
+*.pkl
+*.joblib
+*.h5
+*.onnx
+!models/.gitkeep
+
+# Data (large raw datasets)
+data/raw/
+data/interim/
+data/processed/
+!data/.gitkeep
+
+# OS
+Thumbs.db
+
+# MkDocs
+site/
