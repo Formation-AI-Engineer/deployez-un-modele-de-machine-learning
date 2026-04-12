@@ -27,7 +27,7 @@ Projet en cours de construction — voir [`docs/00-overview.md`](docs/00-overvie
 
 ## Prérequis
 
-- Python **>= 3.11**
+- Python **>= 3.10**
 - PostgreSQL **>= 14** (local ou via Docker)
 - Git
 - (Optionnel) Compte Hugging Face pour le déploiement
