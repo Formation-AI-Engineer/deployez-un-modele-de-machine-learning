@@ -5,61 +5,67 @@ Mettre en place une infrastructure d'intégration et de déploiement continus su
 Le pipeline doit garantir la qualité du code, faciliter les tests et permettre un déploiement rapide et fiable du modèle.
 
 ## Prérequis
-- [ ] Compréhension des principes d'intégration continue
-- [ ] Compréhension des environnements (dev / test / prod)
-- [ ] Étape 1 terminée (dépôt prêt)
-- [ ] Compte Hugging Face (ou équivalent) créé
+- [x] Compréhension des principes d'intégration continue
+- [x] Compréhension des environnements (dev / test / prod)
+- [x] Étape 1 terminée (dépôt prêt)
+- [ ] Compte Hugging Face (ou équivalent) créé — **action utilisateur requise**
 
 ## Tâches à réaliser
 
 ### 1. Préparation
-- [ ] Lister les étapes du pipeline AVANT de les coder
-  - Exemple : lint → tests unitaires → build → déploiement
-- [ ] Définir les environnements cibles et leurs déclencheurs
-  - `dev` : push sur `dev`
-  - `test` : PR vers `main`
-  - `prod` : tag ou push sur `main`
-- [ ] Lister les secrets nécessaires (tokens HF, DB URL, etc.)
+- [x] Lister les étapes du pipeline AVANT de les coder
+  - Pipeline CI : `lint (ruff check + format)` → `tests (pytest + coverage)` → upload artefacts
+  - Pipeline CD : push vers HF Spaces (déclenché sur push main / tag)
+- [x] Définir les environnements cibles et leurs déclencheurs
+  - `dev` : push sur `dev` → CI uniquement
+  - `test` : PR vers `main` → CI (gate avant merge)
+  - `prod` : push sur `main` ou tag `v*` → CI + CD (déploiement HF)
+- [x] Lister les secrets nécessaires → documentés dans `.env.example`
+  - `DATABASE_URL` — chaîne de connexion PostgreSQL
+  - `HF_TOKEN` — token d'écriture Hugging Face
+  - `HF_SPACE_ID` — identifiant du Space (ex: `user/repo`)
 
 ### 2. Pipeline GitHub Actions
-- [ ] Créer `.github/workflows/ci.yml`
-- [ ] Job : installation Python + cache des dépendances
-- [ ] Job : lint (ruff / flake8) — optionnel mais recommandé
-- [ ] Job : exécution des tests Pytest (sera étoffé à l'étape 5)
-- [ ] Job : rapport de couverture
-- [ ] Déclencheurs : `push` et `pull_request`
+- [x] Créer `.github/workflows/ci.yml` — lint + tests
+- [x] Job `lint` : install Python 3.11 + cache pip + `ruff check` + `ruff format --check`
+- [x] Job `test` : install + `pytest --cov` + upload du rapport XML
+- [x] Déclencheurs : `push` (main, dev) et `pull_request` (main)
+- [x] Créer `.github/workflows/cd.yml` — déploiement HF Spaces sur push main / tag
 
 ### 3. Protection des branches
-- [ ] Configurer la branche `main` protégée
-- [ ] Exiger que la CI passe avant merge
-- [ ] Exiger au moins une review (si collab) ou self-review
+- [ ] Configurer la branche `main` protégée sur GitHub — **action utilisateur requise**
+  - Aller dans Settings > Branches > Add rule > `main`
+  - Cocher : *Require status checks to pass before merging* → sélectionner `lint` et `test`
+  - (Optionnel) *Require a pull request before merging*
+- [ ] Vérifier que la CI bloque bien un merge si les tests échouent
 
 ### 4. Gestion des secrets
-- [ ] Créer les secrets dans GitHub Settings > Secrets
-- [ ] Ne JAMAIS les exposer dans les logs (pas de `echo` direct)
-- [ ] Utiliser `${{ secrets.XXX }}` dans les workflows
-- [ ] Documenter la liste des secrets requis (sans les valeurs)
+- [x] Utiliser `${{ secrets.XXX }}` dans les workflows (jamais d'echo direct)
+- [x] Documenter la liste des secrets requis dans `.env.example`
+- [ ] Créer les secrets dans GitHub Settings > Secrets and variables > Actions — **action utilisateur requise** :
+  - `DATABASE_URL`
+  - `HF_TOKEN`
+  - `HF_SPACE_ID`
 
 ### 5. Déploiement Hugging Face Spaces
-- [ ] Créer un Space Hugging Face pour le projet
-- [ ] Ajouter un workflow de déploiement automatique (push vers HF)
-- [ ] Configurer le token HF comme secret GitHub
-- [ ] Tester un premier déploiement bout-en-bout (même avec une API minimale)
+- [ ] Créer un Space Hugging Face (type Docker ou Gradio) — **action utilisateur requise**
+- [x] Workflow de déploiement automatique prêt (`cd.yml`)
+- [ ] Configurer le token HF comme secret GitHub (cf. point 4)
+- [ ] Tester un premier déploiement bout-en-bout — *après étape 3 (API minimale)*
 - [ ] Vérifier que le Space est accessible publiquement
 
 ### 6. Standards / documentation
-- [ ] Créer un README ou section décrivant :
-  - [ ] Les standards de code adoptés
-  - [ ] Les standards d'expérimentation ML
-  - [ ] Le workflow de contribution
+- [x] Standards de code documentés : Ruff (lint + format), conventions dans le README
+- [ ] Standards d'expérimentation ML — *à compléter après choix du modèle*
+- [x] Workflow de contribution : branches `feature/`, Conventional Commits (README)
 
 ## Résultats attendus
-- [ ] Pipeline CI/CD automatisé fonctionnel
-- [ ] Fichier YAML configurant au moins une GitHub Action
-- [ ] Tests automatiques exécutés à chaque push/PR
-- [ ] Validation avant fusion de branche
-- [ ] Gestion des environnements en place
-- [ ] Secrets correctement gérés
+- [x] Pipeline CI/CD automatisé fonctionnel (2 workflows YAML)
+- [x] Fichier YAML configurant GitHub Actions (ci.yml + cd.yml)
+- [x] Tests automatiques exécutés à chaque push/PR
+- [ ] Validation avant fusion de branche (protection main — action utilisateur)
+- [x] Gestion des environnements en place (dev/test/prod via déclencheurs)
+- [x] Secrets documentés + utilisés via `${{ secrets }}` — reste à les créer sur GitHub
 
 ## Points de vigilance
 - **Temps d'exécution** : si le pipeline dépasse ~10 min, interroger (cache, parallélisation, jobs ciblés)
@@ -75,4 +81,4 @@ Le pipeline doit garantir la qualité du code, faciliter les tests et permettre 
 - Démarrer avec Hugging Face Spaces
 - Cours OpenClassrooms : "Mettez en place l'intégration et la livraison continues avec la démarche DevOps"
 
-## Statut global étape : **À FAIRE**
+## Statut global étape : **QUASI TERMINÉE** — reste 4 actions manuelles (protection main, secrets GitHub, création Space HF, test déploiement E2E).
