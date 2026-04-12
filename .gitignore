@@ -53,24 +53,27 @@ coverage.xml
 # Logs
 *.log
 logs/
+catboost_info/
 
 # Databases (local)
 *.sqlite
 *.sqlite3
 *.db
 
-# ML artifacts (large files — prefer Git LFS or external storage)
+# ML artifacts (regenerated via scripts/train_model.py)
 *.pkl
 *.joblib
 *.h5
 *.onnx
+*.cbm
 !models/.gitkeep
 
-# Data (large raw datasets)
+# Data (large raw datasets — small CSVs are tracked)
 data/raw/
 data/interim/
 data/processed/
 !data/.gitkeep
+!data/*.csv
 
 # OS
 Thumbs.db
