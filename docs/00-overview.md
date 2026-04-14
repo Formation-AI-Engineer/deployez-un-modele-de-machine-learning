@@ -49,7 +49,7 @@ Objectif : rendre un modèle ML opérationnel et accessible via une API performa
 | 1 | Gestion de version & collaboration | [01-git-versioning.md](01-git-versioning.md) | À faire |
 | 2 | Configuration CI/CD | [02-cicd.md](02-cicd.md) | À faire |
 | 3 | Développement de l'API | [03-api-fastapi.md](03-api-fastapi.md) | Terminée |
-| 4 | Base de données PostgreSQL | [04-postgresql.md](04-postgresql.md) | À faire |
+| 4 | Base de données PostgreSQL | [04-postgresql.md](04-postgresql.md) | Terminée |
 | 5 | Tests unitaires & fonctionnels | [05-tests.md](05-tests.md) | À faire |
 | 6 | Documentation | [06-documentation.md](06-documentation.md) | À faire |
 

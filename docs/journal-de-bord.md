@@ -380,13 +380,78 @@ Les prédictions sont cohérentes avec les connaissances métier sur l'attrition
 
 ---
 
+## Étape 4 — Base de données PostgreSQL
+
+### 4.1 Choix techniques
+
+**PostgreSQL 16** via Docker : pas d'installation système, un `docker compose up` et c'est prêt. Le volume `pgdata` persiste les données entre les redémarrages.
+
+**SQLAlchemy 2.0** (style déclaratif avec `Mapped` + `mapped_column`) : c'est l'ORM standard Python, compatible avec FastAPI via un système de dépendances (`Depends(get_db)`). Le style 2.0 est plus typé et lisible que l'ancien style.
+
+**Psycopg 3** (driver PostgreSQL) : successeur de psycopg2, plus performant et avec support natif async (même si on reste en sync pour ce POC).
+
+**Pydantic Settings** (`app/config.py`) : charge `DATABASE_URL` depuis le `.env`. L'option `extra="ignore"` permet d'avoir d'autres variables (HF_TOKEN, etc.) dans le même fichier sans erreur.
+
+### 4.2 Modélisation
+
+Deux tables :
+
+**Table `dataset`** (1470 lignes) : données RH brutes fusionnées depuis les 3 CSV (sirh, eval, sondage). Clé unique sur `id_employee`. Sert de référentiel pour consulter les données source.
+
+**Table `predictions`** : chaque appel à `POST /predict` crée une ligne avec :
+- L'input complet (24 champs RH)
+- L'output (prediction, probability, risk_level)
+- Les métadonnées (created_at, model_version)
+
+**Pourquoi une seule table predictions** (et non input/output séparés) : pour un POC, séparer input et output ajoute de la complexité (jointures, FK) sans apporter de valeur. Une seule table = une seule requête = traçabilité immédiate.
+
+### 4.3 Intégration API ↔ DB
+
+- Les tables sont créées automatiquement au startup (`Base.metadata.create_all` dans `app/main.py`)
+- La dépendance `get_db()` injecte une session SQLAlchemy dans chaque route qui en a besoin
+- Le route `/predict` persiste chaque prédiction après l'inférence, dans la même transaction
+- `GET /predictions` et `GET /predictions/{id}` permettent de consulter l'historique
+
+### 4.4 Docker Compose
+
+```yaml
+services:
+  db:    # PostgreSQL 16 avec healthcheck
+  api:   # FastAPI (build depuis Dockerfile), attend que db soit healthy
+volumes:
+  pgdata:  # Persistance des données PostgreSQL
+```
+
+L'API ne démarre qu'une fois PostgreSQL prêt (`depends_on: condition: service_healthy`).
+
+### 4.5 Seed du dataset
+
+`scripts/seed_db.py` charge les 3 CSV, les fusionne (même logique que `load_and_merge` du preprocessing), et insère les 1470 lignes dans la table `dataset`. Le script est idempotent : il vérifie si des données existent déjà avant d'insérer.
+
+---
+
+## Historique Git
+
+| Commit | Type | Description |
+|--------|------|-------------|
+| `06244a6` | `chore` | Initial project scaffold (structure, pyproject.toml, README, docs/) |
+| `a8187fc` | `docs` | Mark git/versioning step as completed |
+| `863735b` | `ci` | Add GitHub Actions CI/CD pipelines (ci.yml, cd.yml, .env.example) |
+| `1e9994d` | `feat` | Add FastAPI app with CatBoost attrition prediction |
+
+**Tags** : `v0.1.0` (scaffold initial), `v0.2.0` (API + CI/CD + déploiement HF).
+
+**Branches** : `main`, `dev`, `feature/cicd`, `feature/api`, `feature/postgresql`.
+
+---
+
 ## Prochaines étapes
 
 | # | Étape | Statut |
 |---|-------|--------|
 | 1 | Gestion de version & collaboration | **Terminée** |
-| 2 | Configuration CI/CD | **Quasi terminée** (reste config manuelle GitHub/HF) |
+| 2 | Configuration CI/CD | **Terminée** (secrets configurés, déploiement HF opérationnel) |
 | 3 | Développement de l'API | **Terminée** |
-| 4 | Base de données PostgreSQL | À faire |
+| 4 | Base de données PostgreSQL | **Terminée** |
 | 5 | Tests unitaires & fonctionnels | À faire |
 | 6 | Documentation | À faire |
