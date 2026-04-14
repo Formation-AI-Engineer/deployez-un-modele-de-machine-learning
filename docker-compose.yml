@@ -1,0 +1,29 @@
+services:
+  db:
+    image: postgres:16
+    environment:
+      POSTGRES_USER: ml_user
+      POSTGRES_PASSWORD: ml_password
+      POSTGRES_DB: ml_deploy
+    ports:
+      - "5432:5432"
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ml_user -d ml_deploy"]
+      interval: 5s
+      timeout: 3s
+      retries: 5
+
+  api:
+    build: .
+    ports:
+      - "7860:7860"
+    environment:
+      DATABASE_URL: postgresql+psycopg://ml_user:ml_password@db:5432/ml_deploy
+    depends_on:
+      db:
+        condition: service_healthy
+
+volumes:
+  pgdata:
