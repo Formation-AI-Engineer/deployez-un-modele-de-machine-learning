@@ -1,3 +1,12 @@
+---
+title: Deploy ML Model
+emoji: 🚀
+colorFrom: blue
+colorTo: purple
+sdk: docker
+pinned: false
+---
+
 # Déployez un modèle de Machine Learning
 
 Projet 5 du parcours **AI Engineer** — déploiement en production d'un modèle de Machine Learning pour le client fictif **Futurisys**.
@@ -89,7 +98,7 @@ Le rapport HTML de couverture est généré dans `htmlcov/`.
 │   ├── unit/             # Tests unitaires
 │   └── functional/       # Tests fonctionnels / end-to-end
 ├── docs/                 # Documentation et suivi par étape
-├── .github/workflows/    # Pipelines CI/CD
+├── .github/workflows/    # Pipeline CI/CD (ci-cd.yml)
 ├── pyproject.toml        # Dépendances et configuration
 └── README.md
 ```
