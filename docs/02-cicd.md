@@ -26,11 +26,11 @@ Le pipeline doit garantir la qualité du code, faciliter les tests et permettre 
   - `HF_SPACE_ID` — identifiant du Space (ex: `user/repo`)
 
 ### 2. Pipeline GitHub Actions
-- [x] Créer `.github/workflows/ci.yml` — lint + tests
+- [x] Créer `.github/workflows/ci-cd.yml` — lint + tests + déploiement dans un seul fichier
 - [x] Job `lint` : install Python 3.11 + cache pip + `ruff check` + `ruff format --check`
-- [x] Job `test` : install + `pytest --cov` + upload du rapport XML
-- [x] Déclencheurs : `push` (main, dev) et `pull_request` (main)
-- [x] Créer `.github/workflows/cd.yml` — déploiement HF Spaces sur push main / tag
+- [x] Job `test` : install + `pytest --cov` + upload du rapport XML (dépend de `lint`)
+- [x] Job `deploy` : push vers HF Spaces (dépend de `test`, uniquement sur main / tag `v*`)
+- [x] Déclencheurs : `push` (main, dev, tags `v*`) et `pull_request` (main)
 
 ### 3. Protection des branches
 - [ ] Configurer la branche `main` protégée sur GitHub — **action utilisateur requise**
@@ -60,8 +60,8 @@ Le pipeline doit garantir la qualité du code, faciliter les tests et permettre 
 - [x] Workflow de contribution : branches `feature/`, Conventional Commits (README)
 
 ## Résultats attendus
-- [x] Pipeline CI/CD automatisé fonctionnel (2 workflows YAML)
-- [x] Fichier YAML configurant GitHub Actions (ci.yml + cd.yml)
+- [x] Pipeline CI/CD automatisé fonctionnel (1 workflow unifié)
+- [x] Fichier YAML configurant GitHub Actions (ci-cd.yml : lint → test → deploy)
 - [x] Tests automatiques exécutés à chaque push/PR
 - [ ] Validation avant fusion de branche (protection main — action utilisateur)
 - [x] Gestion des environnements en place (dev/test/prod via déclencheurs)
