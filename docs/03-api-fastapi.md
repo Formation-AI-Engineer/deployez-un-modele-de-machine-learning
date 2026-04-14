@@ -5,67 +5,69 @@ Créer une API avec **FastAPI** (ou Gradio) pour exposer le modèle de machine l
 Valider les données entrantes avec **Pydantic**, configurer les endpoints nécessaires pour retourner les prédictions, et tester chaque endpoint individuellement.
 
 ## Prérequis
-- [ ] Compréhension claire du modèle ML choisi (P3 ou P4)
-- [ ] Expérience de base avec Python et les API REST
-- [ ] Modèle entraîné disponible (fichier `.pkl`, `.joblib`, etc.)
+- [x] Compréhension claire du modèle ML choisi (P4 — CatBoost attrition)
+- [x] Expérience de base avec Python et les API REST
+- [x] Modèle entraîné disponible (fichier `.cbm` généré par `scripts/train_model.py`)
 
 ## Tâches à réaliser
 
 ### 1. Préparation du modèle
-- [ ] Récupérer le modèle entraîné du projet P3 ou P4
-- [ ] Sérialiser le modèle (joblib / pickle) si ce n'est pas déjà fait
-- [ ] Identifier les features d'entrée attendues (noms, types, plages)
-- [ ] Identifier le format de sortie (classe, probabilité, valeur numérique)
-- [ ] Créer un module `model_loader.py` qui charge le modèle au démarrage
+- [x] Récupérer le modèle entraîné du projet P4
+- [x] Sérialiser le modèle (format `.cbm` natif CatBoost via `scripts/train_model.py`)
+- [x] Identifier les features d'entrée attendues (40 features, listées dans `app/preprocessing.py`)
+- [x] Identifier le format de sortie (classe Oui/Non, probabilité, niveau de risque)
+- [x] Créer un module de chargement (`app/services/prediction.py` — singleton au startup)
 
 ### 2. Structure de l'API
-- [ ] Créer l'arborescence `app/`
+- [x] Créer l'arborescence `app/`
   ```
   app/
   ├── __init__.py
   ├── main.py          # point d'entrée FastAPI
-  ├── schemas.py       # modèles Pydantic (input/output)
+  ├── preprocessing.py # pipeline de preprocessing (reproduit le notebook P4)
+  ├── schemas/         # modèles Pydantic (input/output)
   ├── routes/          # endpoints
   ├── services/        # logique métier (prédiction)
-  └── config.py        # settings (Pydantic Settings)
+  └── config.py        # settings (Pydantic Settings) — à créer étape 4
   ```
-- [ ] Installer FastAPI + uvicorn (`fastapi`, `uvicorn[standard]`)
+- [x] Installer FastAPI + uvicorn (dans `pyproject.toml`)
 
 ### 3. Schémas Pydantic
-- [ ] Définir le schéma d'input (validation stricte : types, bornes, champs requis)
-- [ ] Définir le schéma d'output (prédiction + métadonnées éventuelles)
-- [ ] Ajouter des exemples dans `model_config` / `Field(..., example=...)` pour Swagger
-- [ ] Gérer les messages d'erreur de validation clairs
+- [x] Définir le schéma d'input (validation stricte : types, bornes, Enums pour catégorielles)
+- [x] Définir le schéma d'output (prédiction + probabilité + niveau de risque)
+- [x] Ajouter des exemples dans `Field(..., example=...)` pour Swagger
+- [x] Gérer les messages d'erreur de validation clairs (422 automatique via Pydantic)
 
 ### 4. Endpoints
-- [ ] `GET /` ou `GET /health` : healthcheck (API up)
-- [ ] `GET /model/info` : métadonnées du modèle (version, features attendues)
-- [ ] `POST /predict` : endpoint principal de prédiction
+- [x] `GET /` : redirige vers `/docs` (Swagger UI)
+- [x] `GET /health` : healthcheck (API up)
+- [x] `GET /model/info` : métadonnées du modèle (version, features attendues)
+- [x] `POST /predict` : endpoint principal de prédiction
 - [ ] (Optionnel) `POST /predict/batch` : prédictions multiples
-- [ ] Codes HTTP appropriés (200, 422 validation, 500 erreur interne)
+- [x] Codes HTTP appropriés (200, 422 validation)
 
 ### 5. Gestion des erreurs
-- [ ] Handler global pour les `ValidationError`
-- [ ] Handler pour les erreurs de prédiction (input incohérent avec le modèle)
+- [x] Handler global pour les `ValidationError` (intégré FastAPI/Pydantic → 422)
+- [x] Handler pour les erreurs de prédiction (input incohérent avec le modèle)
 - [ ] Logs structurés (au moins par prédiction)
 
 ### 6. Documentation Swagger
-- [ ] Vérifier que `/docs` expose Swagger UI
-- [ ] Vérifier que `/redoc` expose ReDoc
-- [ ] Enrichir les docstrings des endpoints (title, summary, description)
-- [ ] Ajouter des `response_model` et des `responses` détaillées
+- [x] Vérifier que `/docs` expose Swagger UI
+- [x] Vérifier que `/redoc` expose ReDoc
+- [x] Enrichir les docstrings des endpoints (title, summary, description)
+- [x] Ajouter des `response_model` et des `responses` détaillées
 
 ### 7. Tests manuels
-- [ ] Lancer l'API en local (`uvicorn app.main:app --reload`)
-- [ ] Tester chaque endpoint individuellement (Swagger UI / curl / httpie)
-- [ ] Vérifier les cas d'erreurs de validation
-- [ ] Vérifier un cas nominal et un cas limite
+- [x] Lancer l'API en local (`uvicorn app.main:app --reload`)
+- [x] Tester chaque endpoint individuellement (curl + Swagger UI)
+- [x] Vérifier les cas d'erreurs de validation (422 avec messages détaillés)
+- [x] Vérifier un cas nominal et un cas limite (profil à risque + profil stable)
 
 ## Résultats attendus
-- [ ] API fonctionnelle exposant le modèle ML
-- [ ] Endpoints documentés via Swagger/OpenAPI
-- [ ] Validation robuste des données d'entrée avec Pydantic
-- [ ] Chaque endpoint testé individuellement
+- [x] API fonctionnelle exposant le modèle ML
+- [x] Endpoints documentés via Swagger/OpenAPI
+- [x] Validation robuste des données d'entrée avec Pydantic
+- [x] Chaque endpoint testé individuellement
 
 ## Points de vigilance
 - **Conformité des données entrantes** avec les attentes du modèle (ordre des features, encodage, normalisation)
@@ -88,4 +90,4 @@ Valider les données entrantes avec **Pydantic**, configurer les endpoints néce
 ## Checkpoint mentor
 À la fin de cette étape, faire le point avec le mentor pour valider la conception de l'API et son intégration avec le modèle.
 
-## Statut global étape : **À FAIRE**
+## Statut global étape : **TERMINÉE** — déployée sur HF Spaces, reste logs structurés et batch (optionnels).

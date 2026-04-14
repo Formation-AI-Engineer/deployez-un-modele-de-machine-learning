@@ -1,6 +1,7 @@
 """FastAPI application — ML model deployment for attrition prediction."""
 
 from fastapi import FastAPI
+from fastapi.responses import RedirectResponse
 
 from app.routes.predict import router as predict_router
 from app.services.prediction import load_model
@@ -26,6 +27,12 @@ app.include_router(predict_router)
 def startup():
     """Load the ML model once at startup."""
     load_model()
+
+
+@app.get("/", include_in_schema=False)
+def root():
+    """Redirect to Swagger UI."""
+    return RedirectResponse(url="/docs")
 
 
 @app.get(
