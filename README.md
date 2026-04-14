@@ -89,7 +89,7 @@ Le rapport HTML de couverture est généré dans `htmlcov/`.
 │   ├── unit/             # Tests unitaires
 │   └── functional/       # Tests fonctionnels / end-to-end
 ├── docs/                 # Documentation et suivi par étape
-├── .github/workflows/    # Pipelines CI/CD
+├── .github/workflows/    # Pipeline CI/CD (ci-cd.yml)
 ├── pyproject.toml        # Dépendances et configuration
 └── README.md
 ```

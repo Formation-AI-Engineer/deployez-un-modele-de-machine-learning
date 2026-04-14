@@ -127,16 +127,18 @@ git push origin v0.1.0
 
 ## Étape 2 — Configuration CI/CD
 
-### 2.1 Pipeline CI : `.github/workflows/ci.yml`
+### 2.1 Pipeline CI/CD unifié : `.github/workflows/ci-cd.yml`
 
-**Action** : création d'un workflow GitHub Actions déclenché sur `push` (main, dev) et `pull_request` (main).
+**Action** : création d'un workflow GitHub Actions **unique** déclenché sur `push` (main, dev, tags `v*`) et `pull_request` (main).
+
+**Pourquoi un seul fichier** (et non `ci.yml` + `cd.yml` séparés) : avec deux fichiers, les workflows se déclenchaient en parallèle — le CD pouvait déployer avant même que la CI ne finisse. En fusionnant tout dans un seul workflow avec `needs`, on garantit l'ordre d'exécution : lint → tests → deploy. C'est aussi plus simple à maintenir.
 
 **Architecture du pipeline** :
 ```
-push/PR → [Job: lint] → [Job: test]
+push/PR → [Job: lint] → [Job: test] → [Job: deploy]
 ```
 
-Le job `test` dépend de `lint` (`needs: lint`). Si le lint échoue, les tests ne se lancent pas — inutile de tester du code mal formaté.
+Chaque job dépend du précédent (`needs`). Si le lint échoue, les tests ne se lancent pas. Si les tests échouent, pas de déploiement.
 
 **Job `lint`** :
 1. Checkout du code
@@ -153,13 +155,13 @@ Le job `test` dépend de `lint` (`needs: lint`). Si le lint échoue, les tests n
 
 **Pourquoi le cache pip** : sans cache, chaque run télécharge et installe toutes les dépendances (~2-3 min). Avec le cache, c'est quasi-instantané si le `pyproject.toml` n'a pas changé. La clé de cache est basée sur le hash du fichier : `${{ hashFiles('pyproject.toml') }}`.
 
-### 2.2 Pipeline CD : `.github/workflows/cd.yml`
+**Job `deploy`** :
+1. Checkout du code (avec `fetch-depth: 0` pour l'historique complet)
+2. Push vers le dépôt Git du Space HF via HTTPS
 
-**Action** : workflow de déploiement automatique vers Hugging Face Spaces.
+Le job `deploy` ne s'exécute que sur `main` ou un tag `v*` (condition `if`). Sur `dev` ou les PR, seuls lint + test tournent.
 
-**Déclencheur** : push sur `main` OU création d'un tag `v*`.
-
-**Mécanisme** : on pousse le code directement dans le dépôt Git du Space HF. C'est le mode de déploiement natif de HF Spaces — quand le repo du Space reçoit un push, il rebuild automatiquement le Docker et relance l'app.
+**Mécanisme de déploiement** : on pousse le code directement dans le dépôt Git du Space HF. C'est le mode de déploiement natif de HF Spaces — quand le repo du Space reçoit un push, il rebuild automatiquement le Docker et relance l'app.
 
 **Secrets utilisés** :
 - `HF_TOKEN` : token d'authentification Hugging Face (accès en écriture)
