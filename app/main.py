@@ -5,6 +5,8 @@ from fastapi.responses import RedirectResponse
 
 from app.routes.predict import router as predict_router
 from app.services.prediction import load_model
+from db.database import engine
+from db.models import Base
 
 app = FastAPI(
     title="API Prédiction d'Attrition — TechNova Partners",
@@ -25,7 +27,8 @@ app.include_router(predict_router)
 
 @app.on_event("startup")
 def startup():
-    """Load the ML model once at startup."""
+    """Create DB tables (if needed) and load the ML model."""
+    Base.metadata.create_all(bind=engine)
     load_model()
 
 

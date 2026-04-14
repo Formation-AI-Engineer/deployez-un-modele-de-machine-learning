@@ -59,16 +59,43 @@ pip install -e ".[dev]"
 
 ## Utilisation
 
-*À compléter une fois l'API développée (étape 3).*
+### En local (développement)
 
 ```bash
+# Activer l'environnement virtuel
+source .venv/bin/activate  # Linux/Mac
+# .venv\Scripts\activate   # Windows
+
 # Lancer l'API en local
 uvicorn app.main:app --reload
 ```
 
+### Avec Docker (API seule)
+
+```bash
+# Construire l'image
+docker build -t attrition-api .
+
+# Lancer le conteneur
+docker run -p 7860:7860 attrition-api
+```
+
+### Avec Docker Compose (API + PostgreSQL)
+
+```bash
+# Lancer l'ensemble (API + base de données)
+docker compose up --build -d
+
+# Importer le dataset dans la base (une seule fois)
+docker compose exec api python scripts/seed_db.py
+
+# Arrêter
+docker compose down
+```
+
 Documentation interactive disponible sur :
-- Swagger UI : http://localhost:8000/docs
-- ReDoc : http://localhost:8000/redoc
+- **Local** : http://localhost:8000/docs (Swagger UI) / http://localhost:8000/redoc
+- **Docker / Compose** : http://localhost:7860/docs (Swagger UI) / http://localhost:7860/redoc
 
 ## Tests
 
