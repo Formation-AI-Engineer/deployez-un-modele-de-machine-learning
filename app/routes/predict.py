@@ -5,9 +5,8 @@ from sqlalchemy.orm import Session
 
 from app.schemas.prediction import ModelInfo, PredictionInput, PredictionOutput
 from app.schemas.prediction_record import PredictionRecord
-from app.services.prediction import get_model_info, predict
+from app.services import prediction as prediction_service
 from db.database import get_db
-from db.models import Prediction
 
 router = APIRouter(tags=["Prédiction"])
 
@@ -22,21 +21,8 @@ router = APIRouter(tags=["Prédiction"])
         "Chaque prédiction est enregistrée en base de données."
     ),
 )
-def predict_attrition(data: PredictionInput, db: Session = Depends(get_db)):
-    input_data = data.model_dump()
-    result = predict(input_data)
-
-    # Persist input + output in DB
-    record = Prediction(
-        model_version="1.0.0",
-        **{k: v.value if hasattr(v, "value") else v for k, v in input_data.items()},
-        prediction=result["prediction"],
-        probability=result["probability"],
-        risk_level=result["risk_level"],
-    )
-    db.add(record)
-    db.commit()
-
+def predict_attrition(data: PredictionInput, db: Session = Depends(get_db)) -> PredictionOutput:
+    result = prediction_service.predict_and_record(data.model_dump(), db)
     return PredictionOutput(**result)
 
 
@@ -47,7 +33,7 @@ def predict_attrition(data: PredictionInput, db: Session = Depends(get_db)):
     description="Retourne les métadonnées du modèle déployé (version, algorithme, features).",
 )
 def model_info() -> ModelInfo:
-    return ModelInfo(**get_model_info())
+    return ModelInfo(**prediction_service.get_model_info())
 
 
 @router.get(
@@ -61,9 +47,7 @@ def list_predictions(
     limit: int = Query(20, ge=1, le=100, description="Nombre max de résultats"),
     db: Session = Depends(get_db),
 ):
-    return (
-        db.query(Prediction).order_by(Prediction.created_at.desc()).offset(skip).limit(limit).all()
-    )
+    return prediction_service.list_recent(db, skip=skip, limit=limit)
 
 
 @router.get(
@@ -73,7 +57,7 @@ def list_predictions(
     description="Retourne une prédiction par son ID.",
 )
 def get_prediction(prediction_id: int, db: Session = Depends(get_db)):
-    record = db.query(Prediction).filter(Prediction.id == prediction_id).first()
+    record = prediction_service.get_by_id(db, prediction_id)
     if record is None:
         raise HTTPException(status_code=404, detail="Prédiction non trouvée")
     return record
