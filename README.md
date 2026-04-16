@@ -40,7 +40,7 @@ git clone git@github.com:Formation-AI-Engineer/deployez-un-modele-de-machine-lea
 cd deployez-un-modele-de-machine-learning
 
 # Créer et activer un environnement virtuel
-python -m venv .venv
+python3 -m venv .venv
 source .venv/bin/activate  # Linux/Mac
 # .venv\Scripts\activate   # Windows
 
@@ -151,7 +151,7 @@ Le rapport HTML de couverture est généré dans `htmlcov/`.
 ```
 .
 ├── app/                  # Code de l'API FastAPI
-│   ├── routes/           # Endpoints
+│   ├── routers/          # Endpoints (APIRouter)
 │   ├── services/         # Logique métier (prédiction)
 │   └── schemas/          # Modèles Pydantic
 ├── db/                   # Scripts base de données, modèles ORM
@@ -186,7 +186,7 @@ L'API FastAPI charge le modèle CatBoost une seule fois au démarrage (singleton
 ```mermaid
 sequenceDiagram
     participant C as Client
-    participant R as routes/predict.py
+    participant R as routers/prediction.py
     participant S as services/prediction.py
     participant M as CatBoost
     participant DB as PostgreSQL
@@ -201,7 +201,7 @@ sequenceDiagram
     R-->>C: PredictionOutput (JSON)
 ```
 
-Couches : `routes/` (HTTP) → `services/` (métier + DB) → `db/models.py` (entités SQLAlchemy). Les `schemas/` (Pydantic) définissent le contrat d'API en entrée/sortie, distincts des entités DB.
+Couches : `routers/` (HTTP) → `services/` (métier + DB) → `db/models.py` (entités SQLAlchemy). Les `schemas/` (Pydantic) définissent le contrat d'API en entrée/sortie, distincts des entités DB.
 
 ### Deux pipelines
 

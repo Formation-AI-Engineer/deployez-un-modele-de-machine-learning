@@ -3,7 +3,7 @@
 from fastapi import FastAPI
 from fastapi.responses import RedirectResponse
 
-from app.routes.predict import router as predict_router
+from app.routers.prediction import router as prediction_router
 from app.services.prediction import load_model
 from db.database import engine
 from db.models import Base
@@ -22,7 +22,7 @@ app = FastAPI(
     version="0.1.0",
 )
 
-app.include_router(predict_router)
+app.include_router(prediction_router)
 
 
 @app.on_event("startup")
