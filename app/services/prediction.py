@@ -6,7 +6,8 @@ from catboost import CatBoostClassifier
 from sqlalchemy.orm import Session
 
 from app.preprocessing import EXPECTED_FEATURES, preprocess_single
-from db.models import Prediction
+from app.schemas.prediction import PredictionInput
+from db.models import Dataset, Prediction
 
 MODEL_VERSION = "1.0.0"
 THRESHOLD = 0.5
@@ -110,3 +111,21 @@ def list_recent(db: Session, skip: int = 0, limit: int = 20) -> list[Prediction]
 def get_by_id(db: Session, prediction_id: int) -> Prediction | None:
     """Return a prediction by its ID, or None if not found."""
     return db.query(Prediction).filter(Prediction.id == prediction_id).first()
+
+
+def get_employee(db: Session, id_employee: int) -> Dataset | None:
+    """Return an employee record from the Dataset table, or None if not found."""
+    return db.query(Dataset).filter(Dataset.id_employee == id_employee).first()
+
+
+def predict_by_employee_id(db: Session, id_employee: int) -> dict | None:
+    """Lookup an employee in the Dataset table and run a prediction on their features.
+
+    Returns None if the employee id is not found.
+    """
+    employee = get_employee(db, id_employee)
+    if employee is None:
+        return None
+    data = {field: getattr(employee, field) for field in PredictionInput.model_fields}
+    result = predict_and_record(data, db)
+    return {**result, "id_employee": id_employee}
