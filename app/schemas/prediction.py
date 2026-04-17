@@ -1,5 +1,6 @@
 """Pydantic schemas for prediction input/output."""
 
+from datetime import datetime
 from enum import Enum
 from typing import Literal
 
@@ -156,6 +157,9 @@ class PredictionInput(BaseModel):
 class PredictionOutput(BaseModel):
     """Prediction result."""
 
+    prediction_id: int = Field(
+        ..., description="Identifiant de la prédiction en base (clé pour GET /predictions/{id})"
+    )
     prediction: Literal["Oui", "Non"] = Field(
         ..., description="Prédiction : l'employé va-t-il quitter l'entreprise ?"
     )
@@ -163,6 +167,14 @@ class PredictionOutput(BaseModel):
     risk_level: Literal["faible", "modéré", "élevé"] = Field(
         ..., description="Niveau de risque de départ"
     )
+    threshold: float = Field(
+        ...,
+        ge=0,
+        le=1,
+        description="Seuil utilisé pour classer Oui/Non (probabilité ≥ seuil = Oui)",
+    )
+    model_version: str = Field(..., description="Version du modèle ayant généré la prédiction")
+    timestamp: datetime = Field(..., description="Horodatage de la prédiction")
 
 
 class ModelInfo(BaseModel):
