@@ -20,7 +20,80 @@ L'interaction avec la DB peut rester **entièrement locale** pour simplifier.
   - Table `dataset` (données brutes RH fusionnées depuis les 3 CSV)
   - Table `predictions` (inputs + outputs + métadonnées dans une seule table)
 - [x] Identifier les types de colonnes, clés primaires, contraintes
-- [ ] Produire un schéma UML (diagramme) → à placer dans `docs/` ou `db/`
+- [x] Produire un schéma UML (diagramme ERD Mermaid ci-dessous)
+
+### Schéma ERD
+
+```mermaid
+erDiagram
+    DATASET {
+        int id PK
+        int id_employee UK "unique, indexé"
+        int age
+        string genre
+        int revenu_mensuel
+        string statut_marital
+        string departement
+        string poste
+        string domaine_etude
+        int nombre_experiences_precedentes
+        int annee_experience_totale
+        int annees_dans_l_entreprise
+        int annees_depuis_la_derniere_promotion
+        int satisfaction_employee_environnement
+        int satisfaction_employee_nature_travail
+        int satisfaction_employee_equipe
+        int satisfaction_employee_equilibre_pro_perso
+        int note_evaluation_actuelle
+        int note_evaluation_precedente
+        string heure_supplementaires
+        float augementation_salaire_precedente
+        int nombre_participation_pee
+        int nb_formations_suivies
+        int distance_domicile_travail
+        int niveau_education
+        string frequence_deplacement
+        string a_quitte_l_entreprise "cible P4"
+    }
+
+    PREDICTIONS {
+        int id PK
+        datetime created_at "indexé"
+        string model_version
+        int age "input"
+        string genre "input"
+        int revenu_mensuel "input"
+        string statut_marital "input"
+        string departement "input"
+        string poste "input"
+        string domaine_etude "input"
+        int nombre_experiences_precedentes "input"
+        int annee_experience_totale "input"
+        int annees_dans_l_entreprise "input"
+        int annees_depuis_la_derniere_promotion "input"
+        int satisfaction_employee_environnement "input"
+        int satisfaction_employee_nature_travail "input"
+        int satisfaction_employee_equipe "input"
+        int satisfaction_employee_equilibre_pro_perso "input"
+        int note_evaluation_actuelle "input"
+        int note_evaluation_precedente "input"
+        string heure_supplementaires "input"
+        float augementation_salaire_precedente "input"
+        int nombre_participation_pee "input"
+        int nb_formations_suivies "input"
+        int distance_domicile_travail "input"
+        int niveau_education "input"
+        string frequence_deplacement "input"
+        string prediction "output Oui/Non"
+        float probability "output"
+        string risk_level "output faible/modéré/élevé"
+    }
+```
+
+> Les deux tables sont indépendantes (pas de FK) : `dataset` est le référentiel RH
+> source, `predictions` journalise chaque appel API avec input + output + métadonnées.
+> Le rapprochement éventuel se fait applicativement via l'endpoint
+> `POST /predict/employee/{id_employee}` qui lit `dataset` et écrit `predictions`.
 
 ### 2. Scripts de création
 - [x] Créer `db/create_db.py` — création des tables via SQLAlchemy
@@ -55,7 +128,7 @@ L'interaction avec la DB peut rester **entièrement locale** pour simplifier.
 - [x] Variables d'environnement documentées dans `.env.example`
 
 ## Résultats attendus
-- [ ] Schéma UML de la BDD
+- [x] Schéma UML de la BDD (ERD Mermaid intégré ci-dessus)
 - [x] Script `db/create_db.py` + auto-création au startup
 - [x] Dataset inséré et correctement structuré (1470 lignes)
 - [x] Enregistrement systématique des inputs/outputs dans la table `predictions`
@@ -81,4 +154,4 @@ L'interaction avec la DB peut rester **entièrement locale** pour simplifier.
 ## Checkpoint mentor
 À la fin de cette étape, faire le point avec le mentor pour valider le schéma DB et l'intégration API ↔ DB.
 
-## Statut global étape : **TERMINÉE** — reste le schéma UML (optionnel).
+## Statut global étape : **TERMINÉE**.

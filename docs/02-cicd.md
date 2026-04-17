@@ -8,7 +8,7 @@ Le pipeline doit garantir la qualité du code, faciliter les tests et permettre 
 - [x] Compréhension des principes d'intégration continue
 - [x] Compréhension des environnements (dev / test / prod)
 - [x] Étape 1 terminée (dépôt prêt)
-- [ ] Compte Hugging Face (ou équivalent) créé — **action utilisateur requise**
+- [x] Compte Hugging Face (ou équivalent) créé
 
 ## Tâches à réaliser
 
@@ -33,26 +33,26 @@ Le pipeline doit garantir la qualité du code, faciliter les tests et permettre 
 - [x] Déclencheurs : `push` (main, dev, tags `v*`) et `pull_request` (main)
 
 ### 3. Protection des branches
-- [ ] Configurer la branche `main` protégée sur GitHub — **action utilisateur requise**
+- [x] Configurer la branche `main` protégée sur GitHub
   - Aller dans Settings > Branches > Add rule > `main`
   - Cocher : *Require status checks to pass before merging* → sélectionner `lint` et `test`
   - (Optionnel) *Require a pull request before merging*
-- [ ] Vérifier que la CI bloque bien un merge si les tests échouent
+- [x] Vérifier que la CI bloque bien un merge si les tests échouent
 
 ### 4. Gestion des secrets
 - [x] Utiliser `${{ secrets.XXX }}` dans les workflows (jamais d'echo direct)
 - [x] Documenter la liste des secrets requis dans `.env.example`
-- [ ] Créer les secrets dans GitHub Settings > Secrets and variables > Actions — **action utilisateur requise** :
+- [x] Créer les secrets dans GitHub Settings > Secrets and variables > Actions :
   - `DATABASE_URL`
   - `HF_TOKEN`
   - `HF_SPACE_ID`
 
 ### 5. Déploiement Hugging Face Spaces
-- [ ] Créer un Space Hugging Face (type Docker ou Gradio) — **action utilisateur requise**
+- [x] Créer un Space Hugging Face (type Docker ou Gradio)
 - [x] Workflow de déploiement automatique prêt (`cd.yml`)
-- [ ] Configurer le token HF comme secret GitHub (cf. point 4)
-- [ ] Tester un premier déploiement bout-en-bout — *après étape 3 (API minimale)*
-- [ ] Vérifier que le Space est accessible publiquement
+- [x] Configurer le token HF comme secret GitHub (cf. point 4)
+- [x] Tester un premier déploiement bout-en-bout
+- [x] Vérifier que le Space est accessible publiquement
 
 ### 6. Standards / documentation
 - [x] Standards de code documentés : Ruff (lint + format), conventions dans le README
@@ -63,7 +63,7 @@ Le pipeline doit garantir la qualité du code, faciliter les tests et permettre 
 - [x] Pipeline CI/CD automatisé fonctionnel (1 workflow unifié)
 - [x] Fichier YAML configurant GitHub Actions (ci-cd.yml : lint → test → deploy)
 - [x] Tests automatiques exécutés à chaque push/PR
-- [ ] Validation avant fusion de branche (protection main — action utilisateur)
+- [x] Validation avant fusion de branche (protection main activée)
 - [x] Gestion des environnements en place (dev/test/prod via déclencheurs)
 - [x] Secrets documentés + utilisés via `${{ secrets }}` — reste à les créer sur GitHub
 
@@ -81,4 +81,4 @@ Le pipeline doit garantir la qualité du code, faciliter les tests et permettre 
 - Démarrer avec Hugging Face Spaces
 - Cours OpenClassrooms : "Mettez en place l'intégration et la livraison continues avec la démarche DevOps"
 
-## Statut global étape : **QUASI TERMINÉE** — reste 4 actions manuelles (protection main, secrets GitHub, création Space HF, test déploiement E2E).
+## Statut global étape : **TERMINÉE** — reste uniquement les standards d'expérimentation ML à compléter (point 6).
