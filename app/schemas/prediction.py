@@ -59,66 +59,68 @@ class DomaineEtude(str, Enum):
 class PredictionInput(BaseModel):
     """Input data for attrition prediction — raw employee features."""
 
-    age: int = Field(..., ge=18, le=65, example=35, description="Âge de l'employé")
-    genre: Genre = Field(..., example="M", description="Genre (F/M)")
+    age: int = Field(..., ge=18, le=65, examples=[35], description="Âge de l'employé")
+    genre: Genre = Field(..., examples=["M"], description="Genre (F/M)")
     revenu_mensuel: int = Field(
-        ..., ge=1000, le=50000, example=5000, description="Revenu mensuel (€)"
+        ..., ge=1000, le=50000, examples=[5000], description="Revenu mensuel (€)"
     )
     nombre_experiences_precedentes: int = Field(
-        ..., ge=0, le=15, example=3, description="Nombre d'expériences précédentes"
+        ..., ge=0, le=15, examples=[3], description="Nombre d'expériences précédentes"
     )
     annee_experience_totale: int = Field(
-        ..., ge=0, le=45, example=10, description="Années d'expérience totale"
+        ..., ge=0, le=45, examples=[10], description="Années d'expérience totale"
     )
     annees_dans_l_entreprise: int = Field(
-        ..., ge=0, le=40, example=5, description="Années dans l'entreprise"
+        ..., ge=0, le=40, examples=[5], description="Années dans l'entreprise"
     )
     satisfaction_employee_environnement: int = Field(
-        ..., ge=1, le=4, example=3, description="Satisfaction environnement (1-4)"
+        ..., ge=1, le=4, examples=[3], description="Satisfaction environnement (1-4)"
     )
     satisfaction_employee_nature_travail: int = Field(
-        ..., ge=1, le=4, example=3, description="Satisfaction nature du travail (1-4)"
+        ..., ge=1, le=4, examples=[3], description="Satisfaction nature du travail (1-4)"
     )
     satisfaction_employee_equipe: int = Field(
-        ..., ge=1, le=4, example=3, description="Satisfaction équipe (1-4)"
+        ..., ge=1, le=4, examples=[3], description="Satisfaction équipe (1-4)"
     )
     satisfaction_employee_equilibre_pro_perso: int = Field(
-        ..., ge=1, le=4, example=2, description="Satisfaction équilibre pro/perso (1-4)"
+        ..., ge=1, le=4, examples=[2], description="Satisfaction équilibre pro/perso (1-4)"
     )
     note_evaluation_actuelle: int = Field(
-        ..., ge=1, le=4, example=3, description="Note évaluation actuelle (1-4)"
+        ..., ge=1, le=4, examples=[3], description="Note évaluation actuelle (1-4)"
     )
     note_evaluation_precedente: int = Field(
-        ..., ge=1, le=4, example=3, description="Note évaluation précédente (1-4)"
+        ..., ge=1, le=4, examples=[3], description="Note évaluation précédente (1-4)"
     )
     heure_supplementaires: HeureSupplementaires = Field(
-        ..., example="Non", description="Fait des heures supplémentaires"
+        ..., examples=["Non"], description="Fait des heures supplémentaires"
     )
     augementation_salaire_precedente: float = Field(
-        ..., ge=0, le=30, example=12.0, description="Augmentation salaire précédente (%)"
+        ..., ge=0, le=30, examples=[12.0], description="Augmentation salaire précédente (%)"
     )
     nombre_participation_pee: int = Field(
-        ..., ge=0, le=10, example=2, description="Nombre de participations au PEE"
+        ..., ge=0, le=10, examples=[2], description="Nombre de participations au PEE"
     )
     nb_formations_suivies: int = Field(
-        ..., ge=0, le=10, example=3, description="Nombre de formations suivies"
+        ..., ge=0, le=10, examples=[3], description="Nombre de formations suivies"
     )
     distance_domicile_travail: int = Field(
-        ..., ge=0, le=60, example=10, description="Distance domicile-travail (km)"
+        ..., ge=0, le=60, examples=[10], description="Distance domicile-travail (km)"
     )
     niveau_education: int = Field(
-        ..., ge=1, le=5, example=3, description="Niveau d'éducation (1-5)"
+        ..., ge=1, le=5, examples=[3], description="Niveau d'éducation (1-5)"
     )
     frequence_deplacement: FrequenceDeplacement = Field(
-        ..., example="Occasionnel", description="Fréquence de déplacement"
+        ..., examples=["Occasionnel"], description="Fréquence de déplacement"
     )
     annees_depuis_la_derniere_promotion: int = Field(
-        ..., ge=0, le=15, example=1, description="Années depuis la dernière promotion"
+        ..., ge=0, le=15, examples=[1], description="Années depuis la dernière promotion"
     )
-    statut_marital: StatutMarital = Field(..., example="Marié(e)", description="Statut marital")
-    departement: Departement = Field(..., example="Consulting", description="Département")
-    poste: Poste = Field(..., example="Consultant", description="Poste occupé")
-    domaine_etude: DomaineEtude = Field(..., example="Data Science", description="Domaine d'étude")
+    statut_marital: StatutMarital = Field(..., examples=["Marié(e)"], description="Statut marital")
+    departement: Departement = Field(..., examples=["Consulting"], description="Département")
+    poste: Poste = Field(..., examples=["Consultant"], description="Poste occupé")
+    domaine_etude: DomaineEtude = Field(
+        ..., examples=["Data Science"], description="Domaine d'étude"
+    )
 
     model_config = {
         "json_schema_extra": {
