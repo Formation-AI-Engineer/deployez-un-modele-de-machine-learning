@@ -177,6 +177,12 @@ class PredictionOutput(BaseModel):
     timestamp: datetime = Field(..., description="Horodatage de la prédiction")
 
 
+class EmployeePredictionOutput(PredictionOutput):
+    """Prediction result for a prediction triggered by employee id."""
+
+    id_employee: int = Field(..., description="Identifiant de l'employé dans le dataset RH")
+
+
 class ModelInfo(BaseModel):
     """Model metadata."""
 
