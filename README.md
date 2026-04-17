@@ -9,9 +9,16 @@ pinned: false
 
 # Déployez un modèle de Machine Learning
 
+[![CI/CD](https://github.com/Formation-AI-Engineer/deployez-un-modele-de-machine-learning/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Formation-AI-Engineer/deployez-un-modele-de-machine-learning/actions/workflows/ci-cd.yml)
+[![Coverage](https://img.shields.io/badge/coverage-88%25-brightgreen)](#tests)
+[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
+[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](#licence)
+
 Projet 5 du parcours **AI Engineer** — déploiement en production d'un modèle de Machine Learning pour le client fictif **Futurisys**.
 
 L'objectif : exposer un modèle ML via une API FastAPI, persister les échanges dans une base PostgreSQL, garantir la qualité avec une suite de tests Pytest, et automatiser le déploiement via un pipeline CI/CD (GitHub Actions + Hugging Face Spaces).
+
+Le modèle sous-jacent est détaillé dans la [fiche technique](docs/07-model-card.md).
 
 ## Sommaire
 
@@ -133,18 +140,168 @@ Documentation interactive disponible sur :
 - **Local** : http://localhost:8000/docs (Swagger UI) / http://localhost:8000/redoc
 - **Docker / Compose** : http://localhost:7860/docs (Swagger UI) / http://localhost:7860/redoc
 
-## Tests
+### Exemples d'appels API
+
+Les exemples ci-dessous ciblent l'instance locale Docker Compose (port 7860). Adapter le hôte si besoin.
+
+**Health check**
 
 ```bash
-# Suite complète avec couverture
-pytest --cov=app --cov-report=term-missing --cov-report=html
+curl http://localhost:7860/health
+# {"status":"ok"}
 ```
 
-Le rapport HTML de couverture est généré dans `htmlcov/`.
+**Métadonnées du modèle**
+
+```bash
+curl http://localhost:7860/model/info
+```
+
+**Prédiction à partir de caractéristiques RH** (`POST /predict`)
+
+```bash
+curl -X POST http://localhost:7860/predict \
+  -H "Content-Type: application/json" \
+  -d '{
+    "age": 35, "genre": "M", "revenu_mensuel": 5000,
+    "nombre_experiences_precedentes": 3, "annee_experience_totale": 10,
+    "annees_dans_l_entreprise": 5,
+    "satisfaction_employee_environnement": 3, "satisfaction_employee_nature_travail": 3,
+    "satisfaction_employee_equipe": 3, "satisfaction_employee_equilibre_pro_perso": 2,
+    "note_evaluation_actuelle": 3, "note_evaluation_precedente": 3,
+    "heure_supplementaires": "Non", "augementation_salaire_precedente": 12.0,
+    "nombre_participation_pee": 2, "nb_formations_suivies": 3,
+    "distance_domicile_travail": 10, "niveau_education": 3,
+    "frequence_deplacement": "Occasionnel", "annees_depuis_la_derniere_promotion": 1,
+    "statut_marital": "Marié(e)", "departement": "Consulting",
+    "poste": "Consultant", "domaine_etude": "Data Science"
+  }'
+```
+
+Réponse :
+
+```json
+{
+  "prediction_id": 42,
+  "prediction": "Non",
+  "probability": 0.2134,
+  "risk_level": "faible",
+  "threshold": 0.5,
+  "model_version": "1.0.0",
+  "timestamp": "2026-04-17T10:42:00Z"
+}
+```
+
+**Prédiction à partir d'un employé existant** (`POST /predict/employee/{id_employee}`) — nécessite d'avoir seedé la table `dataset` :
+
+```bash
+curl -X POST http://localhost:7860/predict/employee/1
+```
+
+**Historique des prédictions**
+
+```bash
+curl "http://localhost:7860/predictions?skip=0&limit=10"
+curl http://localhost:7860/predictions/42
+```
+
+**Depuis Python**
+
+```python
+import httpx
+
+payload = {"age": 35, "genre": "M", "revenu_mensuel": 5000, ...}  # 24 champs
+response = httpx.post("http://localhost:7860/predict", json=payload)
+response.raise_for_status()
+print(response.json())
+```
+
+## Tests
+
+**51 tests** (unitaires + fonctionnels) couvrent la validation Pydantic, le préprocessing, le service de prédiction, l'ORM et l'ensemble des endpoints. Couverture actuelle : **88 %** (cible ≥ 80 %).
+
+```bash
+# Suite complète (SQLite temporaire auto — pas besoin de Postgres)
+pytest
+
+# Avec rapport de couverture console
+pytest --cov=app --cov-report=term-missing
+
+# Avec rapport HTML → ouvre htmlcov/index.html
+pytest --cov=app --cov-report=html
+
+# Un fichier ou un test précis
+pytest tests/unit/test_schemas.py
+pytest tests/functional/test_api_predict.py::test_predict_valid_input_returns_200
+```
+
+Les tests sont exécutés automatiquement en CI (job `test` dans `.github/workflows/ci-cd.yml`). Le détail des cas couverts est dans [`docs/05-tests.md`](docs/05-tests.md).
 
 ## Déploiement
 
-*À compléter — Hugging Face Spaces via GitHub Actions (étape 2).*
+L'API est déployée automatiquement sur **Hugging Face Spaces** (type Docker) via GitHub Actions.
+
+### Pipeline CI/CD
+
+Fichier : [`.github/workflows/ci-cd.yml`](.github/workflows/ci-cd.yml)
+
+```
+push/PR → lint (ruff) → test (pytest --cov) → deploy (push vers HF Spaces)
+```
+
+Déclencheurs :
+- `push` sur `dev` → **lint + tests** uniquement (feedback rapide)
+- `pull_request` vers `main` → **lint + tests** (gate de merge, CI bloquante)
+- `push` sur `main` ou tag `v*` → **lint + tests + déploiement HF**
+
+### Secrets requis (GitHub Settings > Secrets and variables > Actions)
+
+| Secret | Usage |
+|---|---|
+| `DATABASE_URL` | URL PostgreSQL utilisée par les tests CI (optionnel — les tests tombent sur SQLite via `conftest.py`) |
+| `HF_TOKEN` | Token HF avec scope *write* sur le Space |
+| `HF_SPACE_ID` | Identifiant du Space cible (ex. `Formation-AI-Engineer/deployez-un-modele-de-machine-learning`) |
+
+### Mécanique du déploiement
+
+Le job `deploy` force-push le contenu du repo Git vers le repo Git du Space Hugging Face. Le Space, configuré en mode **Docker**, build l'image à partir du `Dockerfile` à la racine, qui :
+
+1. Installe les dépendances Python (`pip install .`)
+2. Lance `scripts/train_model.py` pour régénérer `models/catboost_attrition.cbm` (le `.cbm` n'est pas versionné)
+3. Expose l'API sur le port `7860` (convention HF Spaces)
+
+### Rollback
+
+Redéployer un tag antérieur :
+```bash
+git push --force hf <tag>:main
+```
+
+Ou `git revert <commit>` sur `main` — le pipeline redéploie automatiquement.
+
+## Authentification et sécurisation
+
+**Statut actuel (POC) : l'API n'a pas d'authentification.** Tout client ayant l'URL du Space peut appeler les endpoints.
+
+### Ce qui est déjà en place
+
+- **Validation stricte des entrées** : Pydantic refuse tout payload invalide (types, bornes, énums), réponse `422` explicite. Protège contre les injections via le schéma d'API.
+- **Secrets hors du code** : `DATABASE_URL`, `HF_TOKEN`, `HF_SPACE_ID` chargés depuis l'environnement. `.env` et `.env.*` gitignorés. Seul `.env.example` est versionné comme template.
+- **Secrets CI** : passés via `${{ secrets.XXX }}` dans GitHub Actions, jamais loggés.
+- **Transactions DB** : chaque prédiction est persistée atomiquement — pas d'état incohérent possible.
+- **Protection de branche** : `main` protégée, merge impossible sans CI verte.
+- **Dépendances figées** avec bornes min/max dans `pyproject.toml`.
+
+### Ce qui serait à ajouter pour la production
+
+| Contrôle | Piste |
+|---|---|
+| Authentification API | Clé d'API en header (`X-API-Key`) ou OAuth2 / JWT selon le contexte d'appel |
+| Rate limiting | `slowapi` côté FastAPI, ou reverse proxy (nginx / Cloudflare) |
+| Journalisation structurée | `structlog` + export vers un agrégateur (Datadog, Grafana Loki…) |
+| Chiffrement au repos | PostgreSQL managé avec chiffrement natif (pas de PII brutes dans les CSV d'exemple, mais à anticiper) |
+| Audit RGPD | Les features incluent `genre`, `statut_marital`, `age` — base légale et durée de conservation à formaliser avant usage réel |
+| Monitoring modèle | Suivi de dérive (distribution `probability`, proportion `Oui`) — voir [fiche modèle](docs/07-model-card.md) |
 
 ## Structure du projet
 
@@ -269,6 +426,7 @@ Le dossier [`docs/`](docs/) contient le suivi détaillé des 6 étapes de la mis
 | 4 | PostgreSQL | [04-postgresql.md](docs/04-postgresql.md) |
 | 5 | Tests | [05-tests.md](docs/05-tests.md) |
 | 6 | Documentation | [06-documentation.md](docs/06-documentation.md) |
+| ★ | Fiche technique du modèle | [07-model-card.md](docs/07-model-card.md) |
 
 ## Licence
 

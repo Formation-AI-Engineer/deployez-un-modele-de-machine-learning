@@ -11,74 +11,68 @@ Créer une documentation complète et accessible permettant aux utilisateurs et 
 ## Tâches à réaliser
 
 ### 1. README principal du repo
-- [ ] Utiliser le template README fourni dans les ressources
-- [ ] Titre + badges (CI, couverture, licence, version)
-- [ ] Description courte + contexte projet (Futurisys)
-- [ ] Screenshot / schéma d'architecture
-- [ ] Section **Installation**
-  - [ ] Prérequis (Python, PostgreSQL, etc.)
-  - [ ] Clonage, venv, dépendances
-  - [ ] Configuration des variables d'environnement
-- [ ] Section **Utilisation**
-  - [ ] Lancement en local
-  - [ ] Exemples d'appels API
-- [ ] Section **Déploiement** (Hugging Face Spaces ou autre)
-- [ ] Section **Authentification et sécurisation**
-- [ ] Section **Tests** (comment lancer, comment lire la couverture)
-- [ ] Section **Contribution** (conventions de branches/commits)
-- [ ] Licence, auteur, remerciements
+- [x] Titre + badges (CI, couverture, Python, licence)
+- [x] Description courte + contexte projet (Futurisys)
+- [x] Schéma d'architecture (Mermaid — composants + flux `/predict`)
+- [x] Section **Installation** (prérequis, clone, venv, deps, `.env`)
+- [x] Section **Utilisation** (local, Docker, Compose) + exemples curl / Python pour les 4 endpoints
+- [x] Section **Déploiement** (pipeline CI/CD, secrets, HF Spaces, rollback)
+- [x] Section **Authentification et sécurisation** (état POC + contrôles production à prévoir)
+- [x] Section **Tests** (commandes, couverture 88 %, lien vers `05-tests.md`)
+- [x] Section **Conventions** (branches, Conventional Commits, SemVer)
+- [x] Licence, auteur
+- [ ] Screenshot Swagger (facultatif — à capturer manuellement)
 
 ### 2. Documentation de l'API
-- [ ] Vérifier que Swagger/OpenAPI (`/docs`) est complet et à jour
-- [ ] Chaque endpoint a : description, paramètres, exemples, codes retour
-- [ ] Exporter un snapshot OpenAPI (`openapi.json`) si utile
-- [ ] Ajouter des exemples `curl` / `httpie` / Python dans la doc
+- [x] Swagger/OpenAPI (`/docs`) complet et à jour (réponses + exemples via Pydantic)
+- [x] Chaque endpoint a : description, paramètres, exemples, codes retour (dans les docstrings FastAPI)
+- [x] Exemples `curl` et Python fournis dans le README
+- [ ] Export d'un snapshot `openapi.json` (facultatif — accessible live sur `/openapi.json`)
 
 ### 3. Documentation technique du modèle
-- [ ] Fiche technique du modèle :
-  - [ ] Origine (P3 ou P4)
-  - [ ] Type d'algorithme
-  - [ ] Features d'entrée (liste + types + contraintes)
-  - [ ] Cible / sortie
-  - [ ] Métriques de performance (sur jeu de test)
-  - [ ] Limites connues
-- [ ] Protocole de **mise à jour régulière** du modèle
-- [ ] Procédure de redéploiement
-- [ ] Procédure de monitoring (si applicable)
+- [x] Fiche technique du modèle : [`docs/07-model-card.md`](07-model-card.md)
+  - [x] Origine (Projet 4)
+  - [x] Type d'algorithme (CatBoostClassifier)
+  - [x] Features d'entrée (24 champs bruts → 40 features après preprocessing)
+  - [x] Cible / sortie (Oui/Non + probabilité + risk_level)
+  - [x] Métriques de performance sur jeu de test (accuracy 0.79, recall 0.68, ROC AUC 0.81)
+  - [x] Limites connues (dataset synthétique, biais potentiels, pas d'explicabilité)
+- [x] Protocole de **mise à jour régulière** du modèle (section dédiée dans la fiche)
+- [x] Procédure de redéploiement (README + fiche)
+- [x] Procédure de monitoring suggérée (section dans la fiche)
 
 ### 4. Documentation de l'architecture
-- [ ] Schéma global (API ↔ DB ↔ Modèle)
-- [ ] Description des composants
-- [ ] Justification des choix techniques (FastAPI, PostgreSQL, SQLAlchemy, HF Spaces)
-- [ ] Flux de données (d'un appel API jusqu'au stockage DB)
+- [x] Schéma global (Mermaid dans README : API ↔ DB ↔ Modèle)
+- [x] Flux de données d'un appel `/predict` (séquence Mermaid)
+- [x] Description des composants (README)
+- [x] Justification des choix techniques (tableau stack dans README)
+- [x] Schéma ERD de la base (Mermaid dans `04-postgresql.md`)
 
 ### 5. Documentation développeur (optionnel MkDocs/Sphinx)
-- [ ] Mettre en place MkDocs ou Sphinx si souhaité
-- [ ] Générer automatiquement la doc depuis les docstrings
-- [ ] Publier sur GitHub Pages / HF Spaces
+- [ ] MkDocs / Sphinx — non mis en place (Markdown GitHub suffit pour le POC)
 
 ### 6. Finalisation
-- [ ] Relire la documentation pour clarté et exhaustivité
-- [ ] Vérifier qu'un nouveau développeur peut installer et lancer le projet en suivant le README
-- [ ] Vérifier qu'un utilisateur peut appeler l'API avec les exemples fournis
-- [ ] S'assurer que le dossier `docs/` reflète l'état final du projet
+- [x] Relecture de la documentation (cohérence README ↔ docs/ ↔ fiche modèle)
+- [x] Un nouveau dev peut installer et lancer le projet en suivant le README
+- [x] Un utilisateur peut appeler l'API avec les exemples fournis
+- [x] `docs/` reflète l'état final du projet (tableau de suivi à jour)
 
 ### 7. Support de présentation soutenance
-- [ ] Créer le support de présentation pour Aurélien
+- [ ] Créer le support de présentation pour Aurélien — *à faire dans un outil dédié (Slides / Canva) ; contenu déjà structuré dans le projet*
 - [ ] Contenu suggéré :
   - Contexte et objectif
-  - Modèle choisi et pourquoi
-  - Architecture globale
-  - Démo API
-  - CI/CD et déploiement
-  - Tests et couverture
-  - Retours d'expérience / améliorations possibles
+  - Modèle choisi et pourquoi (cf. fiche modèle)
+  - Architecture globale (cf. README)
+  - Démo API (Swagger live sur HF Space)
+  - CI/CD et déploiement (cf. README section Déploiement)
+  - Tests et couverture (51 tests, 88 %)
+  - Retours d'expérience / améliorations (cf. section Sécurisation)
 
 ## Résultats attendus
-- [ ] Documentation de l'API (Swagger + README)
-- [ ] Documentation technique du modèle, performances, maintenance
-- [ ] README informatif sur le repo git et son déploiement
-- [ ] Support de présentation soutenance
+- [x] Documentation de l'API (Swagger + README avec exemples)
+- [x] Documentation technique du modèle, performances, maintenance ([fiche](07-model-card.md))
+- [x] README informatif sur le repo git et son déploiement
+- [ ] Support de présentation soutenance — à construire dans l'outil de présentation
 
 ## Points de vigilance
 - **Clarté et exhaustivité** des explications
@@ -99,4 +93,4 @@ Créer une documentation complète et accessible permettant aux utilisateurs et 
 ## Fiche d'autoévaluation
 Consulter la fiche d'autoévaluation de la mission avant l'envoi des livrables pour s'assurer que rien n'a été oublié.
 
-## Statut global étape : **À FAIRE**
+## Statut global étape : **QUASI TERMINÉE** — reste le support de soutenance (à faire dans un outil de présentation) et un screenshot Swagger facultatif.
