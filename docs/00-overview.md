@@ -50,7 +50,7 @@ Objectif : rendre un modèle ML opérationnel et accessible via une API performa
 | 2 | Configuration CI/CD | [02-cicd.md](02-cicd.md) | Terminée |
 | 3 | Développement de l'API | [03-api-fastapi.md](03-api-fastapi.md) | Terminée |
 | 4 | Base de données PostgreSQL | [04-postgresql.md](04-postgresql.md) | Terminée |
-| 5 | Tests unitaires & fonctionnels | [05-tests.md](05-tests.md) | À faire |
+| 5 | Tests unitaires & fonctionnels | [05-tests.md](05-tests.md) | Terminée |
 | 6 | Documentation | [06-documentation.md](06-documentation.md) | À faire |
 
 ## Avant de démarrer (recommandations mission)
