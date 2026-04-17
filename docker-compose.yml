@@ -21,6 +21,10 @@ services:
       - "7860:7860"
     environment:
       DATABASE_URL: postgresql+psycopg://ml_user:ml_password@db:5432/ml_deploy
+    volumes:
+      - ./app:/app/app
+      - ./db:/app/db
+    command: uvicorn app.main:app --host 0.0.0.0 --port 7860 --reload
     depends_on:
       db:
         condition: service_healthy
