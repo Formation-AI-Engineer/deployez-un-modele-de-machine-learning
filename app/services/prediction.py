@@ -9,6 +9,7 @@ from app.preprocessing import EXPECTED_FEATURES, preprocess_single
 from db.models import Prediction
 
 MODEL_VERSION = "1.0.0"
+THRESHOLD = 0.5
 MODEL_PATH = Path(__file__).resolve().parent.parent.parent / "models" / "catboost_attrition.cbm"
 
 _model: CatBoostClassifier | None = None
@@ -44,7 +45,7 @@ def predict(data: dict) -> dict:
     # Predict
     proba = model.predict_proba(X)[0]
     prob_leave = float(proba[1])
-    prediction = "Oui" if prob_leave >= 0.5 else "Non"
+    prediction = "Oui" if prob_leave >= THRESHOLD else "Non"
 
     # Risk level
     if prob_leave < 0.3:
@@ -58,6 +59,8 @@ def predict(data: dict) -> dict:
         "prediction": prediction,
         "probability": round(prob_leave, 4),
         "risk_level": risk_level,
+        "threshold": THRESHOLD,
+        "model_version": MODEL_VERSION,
     }
 
 
@@ -89,7 +92,12 @@ def predict_and_record(data: dict, db: Session) -> dict:
     )
     db.add(record)
     db.commit()
-    return result
+    db.refresh(record)
+    return {
+        **result,
+        "prediction_id": record.id,
+        "timestamp": record.created_at,
+    }
 
 
 def list_recent(db: Session, skip: int = 0, limit: int = 20) -> list[Prediction]:
