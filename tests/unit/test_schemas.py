@@ -35,7 +35,7 @@ def test_out_of_range_rejected(sample_input, field, value):
     "field,value",
     [
         ("genre", "X"),
-        ("heure_supplementaires", "Maybe"),
+        ("heure_supplementaires", "Jamais"),
         ("frequence_deplacement", "Jamais"),
         ("statut_marital", "PACS"),
         ("departement", "IT"),
