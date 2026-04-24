@@ -9,7 +9,7 @@
 | Fichier | `models/catboost_attrition.cbm` (~1 Mo) |
 | Algorithme | `catboost.CatBoostClassifier` (gradient boosting sur arbres) |
 | Tâche | Classification binaire (départ Oui/Non) |
-| Origine | Sélectionné et tuné dans le **Projet 4** (« Classifiez automatiquement des informations »), réentraîné ici via `scripts/train_model.py` |
+| Origine | Sélectionné dans le **Projet 4** (comparaison Dummy / LogReg / RandomForest / XGBoost / CatBoost). **Version baseline non tunée** retenue — le tuning améliorait le recall mais dégradait precision et F1. Réentraîné ici via `scripts/train_model.py`. |
 | Cible métier | Identifier les employés à risque de départ pour prioriser les actions RH |
 
 ## Données d'entraînement
@@ -58,39 +58,37 @@ L'API attend **24 champs bruts** (types et bornes validés par Pydantic — voir
 
 | Paramètre | Valeur |
 |---|---|
-| `iterations` | 300 |
-| `depth` | 4 |
-| `learning_rate` | 0.01 |
-| `l2_leaf_reg` | 10 |
-| `border_count` | 32 |
-| `auto_class_weights` | `"Balanced"` (compense le déséquilibre 83/17) |
+| *(tous les hyperparamètres)* | valeurs par défaut de CatBoost |
+| `auto_class_weights` | `"Balanced"` (compense le déséquilibre 84/16) |
 | `random_seed` | 42 |
 
-Valeurs issues du tuning effectué en Projet 4 (voir `scripts/train_model.py`).
+Version baseline non tunée — voir `scripts/train_model.py`. Le `RandomizedSearchCV` testé en P4 (100 combinaisons, 5 folds stratifiés, score = F1) améliorait le recall (0,55 → 0,68) mais dégradait la precision (0,58 → 0,41), pour un F1 plus bas (0,57 → 0,51) — non retenu.
 
 ## Performances sur jeu de test (20 %, stratifié)
 
 | Métrique | Valeur |
 |---|---|
-| Accuracy | 0.789 |
-| Precision (classe `Oui`) | 0.405 |
-| **Recall (classe `Oui`)** | **0.681** |
-| F1 (classe `Oui`) | 0.508 |
-| ROC AUC | 0.811 |
+| Accuracy | 0.857 |
+| Precision (classe `Oui`) | 0.561 |
+| Recall (classe `Oui`) | 0.489 |
+| F1 (classe `Oui`) | 0.523 |
+| **PR AUC** (classe `Oui`) | **0.524** |
+
+> **Pourquoi PR AUC et pas ROC AUC ?** Avec une classe positive à 16 %, la ROC AUC est trompeusement élevée (une grande partie des vrais négatifs suffit à gonfler le score). La *precision-recall AUC* ne mesure que le compromis sur la classe minoritaire — c'est la métrique pertinente ici.
 
 **Matrice de confusion** (vraie → prédite) :
 
 |  | Prédit `Non` | Prédit `Oui` |
 |---|---|---|
-| Vrai `Non` (247) | 200 | 47 |
-| Vrai `Oui` (47) | 15 | 32 |
+| Vrai `Non` (247) | 229 | 18 |
+| Vrai `Oui` (47) | 24 | 23 |
 
-**Lecture métier** : le modèle identifie correctement **~68 % des employés qui partent réellement** (recall). En contrepartie, sur 100 employés signalés à risque, environ 40 quitteraient effectivement (precision). L'arbitrage est **volontairement orienté recall** — en contexte RH, rater un départ coûte plus cher que lever une fausse alerte : la DRH peut toujours filtrer, mais ne peut pas agir sur un profil qu'on n'a pas signalé.
+**Lecture métier** : le modèle détecte **~49 % des employés qui partent réellement** (recall) avec **56 % de fiabilité** sur les alertes émises (precision). F1 et PR AUC sont équilibrés autour de 0,52. En contexte RH, rater un départ coûte plus cher que lever une fausse alerte : **outil d'aide à la décision pour la DRH, pas d'automatisation**.
 
 ## Limites connues
 
 1. **Dataset synthétique et petit** (1 470 lignes). Les performances réelles chez un client ne sont pas garanties sans réentraînement.
-2. **Précision limitée sur la classe positive** (~40 %). À utiliser comme outil de priorisation, pas comme décision automatisée.
+2. **Recall limité** (~49 % des départs détectés). À utiliser comme outil de priorisation, pas comme décision automatisée.
 3. **Pas de feature drift monitoring** en place.
 4. **Pas d'explicabilité embarquée** (SHAP non exposé par l'API) — prévisible mais non interprétable côté utilisateur.
 5. **Biais potentiels** : le modèle utilise `genre`, `statut_marital`, `age` — acceptable pour un POC, à auditer avant tout usage opérationnel (risque de discrimination indirecte).
