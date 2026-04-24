@@ -13,6 +13,11 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 from catboost import CatBoostClassifier
+from sklearn.metrics import (
+    average_precision_score,
+    classification_report,
+    confusion_matrix,
+)
 from sklearn.model_selection import train_test_split
 
 from app.preprocessing import encode_features, load_and_merge, prepare_features
@@ -44,24 +49,31 @@ def main():
     )
     print(f"  Train: {X_train.shape[0]}, Test: {X_test.shape[0]}")
 
-    print("Training CatBoost (tuned hyperparameters)...")
+    print("Training CatBoost (baseline — defaults + auto_class_weights='Balanced')...")
     model = CatBoostClassifier(
-        iterations=300,
-        depth=4,
-        learning_rate=0.01,
-        l2_leaf_reg=10,
-        border_count=32,
         auto_class_weights="Balanced",
         random_seed=42,
-        verbose=50,
+        verbose=100,
     )
     model.fit(X_train, y_train)
 
     # Evaluate
+    y_pred = model.predict(X_test).ravel().astype(int)
+    y_proba = model.predict_proba(X_test)[:, 1]
+
     train_acc = model.score(X_train, y_train)
-    test_acc = model.score(X_test, y_test)
-    print(f"  Train accuracy: {train_acc:.4f}")
-    print(f"  Test accuracy:  {test_acc:.4f}")
+    test_acc = (y_pred == y_test.values).mean()
+    pr_auc = average_precision_score(y_test, y_proba)
+    cm = confusion_matrix(y_test, y_pred, labels=[0, 1])
+
+    print("\n=== Evaluation on held-out test set ===")
+    print(f"  Train accuracy : {train_acc:.4f}")
+    print(f"  Test accuracy  : {test_acc:.4f}")
+    print(f"  PR AUC (Oui=1) : {pr_auc:.4f}")
+    print("\nClassification report (0=Non, 1=Oui):")
+    print(classification_report(y_test, y_pred, digits=3))
+    print("Confusion matrix (rows=true, cols=pred; labels=[0=Non, 1=Oui]):")
+    print(cm)
 
     # Save
     MODEL_PATH.parent.mkdir(parents=True, exist_ok=True)
