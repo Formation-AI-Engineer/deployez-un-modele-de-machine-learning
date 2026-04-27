@@ -80,3 +80,6 @@ Thumbs.db
 
 # MkDocs
 site/
+
+# Slides (kept local only)
+*.pptx
