@@ -9,16 +9,14 @@ pinned: false
 
 # Déployez un modèle de Machine Learning
 
-[![CI/CD](https://github.com/Formation-AI-Engineer/deployez-un-modele-de-machine-learning/actions/workflows/ci-cd.yml/badge.svg)](https://github.com/Formation-AI-Engineer/deployez-un-modele-de-machine-learning/actions/workflows/ci-cd.yml)
-[![Coverage](https://img.shields.io/badge/coverage-88%25-brightgreen)](#tests)
-[![Python](https://img.shields.io/badge/python-3.10%2B-blue)](pyproject.toml)
-[![License: MIT](https://img.shields.io/badge/license-MIT-blue)](#licence)
-
-Projet 5 du parcours **AI Engineer** — déploiement en production d'un modèle de Machine Learning pour le client fictif **Futurisys**.
+Projet 5 du parcours AI Engineer — déploiement en production d'un modèle de Machine Learning pour le client fictif Futurisys.
 
 L'objectif : exposer un modèle ML via une API FastAPI, persister les échanges dans une base PostgreSQL, garantir la qualité avec une suite de tests Pytest, et automatiser le déploiement via un pipeline CI/CD (GitHub Actions + Hugging Face Spaces).
 
-Le modèle sous-jacent est détaillé dans la [fiche technique](docs/07-model-card.md).
+## Démo en ligne
+
+- **Space Hugging Face** : <https://huggingface.co/spaces/lcamara/deployMLModel>
+- **Documentation interactive (Swagger UI)** : <https://lcamara-deployMLModel.hf.space/docs>
 
 ## Sommaire
 
@@ -30,14 +28,12 @@ Le modèle sous-jacent est détaillé dans la [fiche technique](docs/07-model-ca
 - [Structure du projet](#structure-du-projet)
 - [Architecture](#architecture)
 - [Conventions](#conventions)
-- [Documentation](#documentation)
 
 ## Prérequis
 
 - Python **>= 3.10**
 - PostgreSQL **>= 14** (local ou via Docker)
 - Git
-- (Optionnel) Compte Hugging Face pour le déploiement
 
 ## Installation
 
@@ -69,8 +65,6 @@ Variables disponibles (chargées via `app/config.py` avec pydantic-settings) :
 |---|---|---|
 | `DATABASE_URL` | URL de connexion PostgreSQL | `postgresql+psycopg://user:pwd@localhost:5432/ml_deploy` |
 | `APP_ENV` | Environnement applicatif | `dev` \| `test` \| `prod` |
-| `HF_TOKEN` | Token Hugging Face (déploiement uniquement, pas runtime) | `hf_xxx...` |
-| `HF_SPACE_ID` | ID du Space cible | `lcamara/deployMLModel` |
 
 `.env` et `.env.*` sont gitignorés. Seul `.env.example` est versionné comme template.
 
@@ -81,7 +75,7 @@ Variables disponibles (chargées via `app/config.py` avec pydantic-settings) :
 Le modèle CatBoost sérialisé (`models/catboost_attrition.cbm`) n'est pas versionné. Il faut l'entraîner une fois avant de lancer l'API :
 
 ```bash
-python scripts/train_model.py
+python3 scripts/train_model.py
 ```
 
 Les 3 CSV nécessaires (`extrait_sirh.csv`, `extrait_eval.csv`, `extrait_sondage.csv`) sont déjà dans `data/`.
@@ -99,9 +93,7 @@ docker compose up -d db
 **2. Lancer l'API** :
 
 ```bash
-source .venv/bin/activate  # Linux/Mac
-# .venv\Scripts\activate   # Windows
-
+source .venv/bin/activate
 uvicorn app.main:app --reload
 ```
 
@@ -110,17 +102,7 @@ Les tables sont créées automatiquement au démarrage (`Base.metadata.create_al
 **3. (Optionnel) Pré-remplir la base** — utile si tu veux interroger le dataset original via SQL ; non requis pour faire des prédictions :
 
 ```bash
-python scripts/seed_db.py
-```
-
-### Avec Docker (API seule)
-
-```bash
-# Construire l'image
-docker build -t attrition-api .
-
-# Lancer le conteneur
-docker run -p 7860:7860 attrition-api
+python3 scripts/seed_db.py
 ```
 
 ### Avec Docker Compose (API + PostgreSQL)
@@ -136,9 +118,9 @@ docker compose exec api python scripts/seed_db.py
 docker compose down
 ```
 
-Documentation interactive disponible sur :
-- **Local** : http://localhost:8000/docs (Swagger UI) / http://localhost:8000/redoc
-- **Docker / Compose** : http://localhost:7860/docs (Swagger UI) / http://localhost:7860/redoc
+Documentation interactive (Swagger UI) :
+- **Local** : <http://localhost:8000/docs>
+- **Docker / Compose** : <http://localhost:7860/docs>
 
 ### Exemples d'appels API
 
@@ -149,12 +131,6 @@ Les exemples ci-dessous ciblent l'instance locale Docker Compose (port 7860). Ad
 ```bash
 curl http://localhost:7860/health
 # {"status":"ok"}
-```
-
-**Métadonnées du modèle**
-
-```bash
-curl http://localhost:7860/model/info
 ```
 
 **Prédiction à partir de caractéristiques RH** (`POST /predict`)
@@ -192,28 +168,11 @@ Réponse :
 }
 ```
 
-**Prédiction à partir d'un employé existant** (`POST /predict/employee/{id_employee}`) — nécessite d'avoir seedé la table `dataset` :
-
-```bash
-curl -X POST http://localhost:7860/predict/employee/1
-```
-
 **Historique des prédictions**
 
 ```bash
 curl "http://localhost:7860/predictions?skip=0&limit=10"
 curl http://localhost:7860/predictions/42
-```
-
-**Depuis Python**
-
-```python
-import httpx
-
-payload = {"age": 35, "genre": "M", "revenu_mensuel": 5000, ...}  # 24 champs
-response = httpx.post("http://localhost:7860/predict", json=payload)
-response.raise_for_status()
-print(response.json())
 ```
 
 ## Tests
@@ -229,13 +188,9 @@ pytest --cov=app --cov-report=term-missing
 
 # Avec rapport HTML → ouvre htmlcov/index.html
 pytest --cov=app --cov-report=html
-
-# Un fichier ou un test précis
-pytest tests/unit/test_schemas.py
-pytest tests/functional/test_api_predict.py::test_predict_valid_input_returns_200
 ```
 
-Les tests sont exécutés automatiquement en CI (job `test` dans `.github/workflows/ci-cd.yml`). Le détail des cas couverts est dans [`docs/05-tests.md`](docs/05-tests.md).
+Les tests sont exécutés automatiquement en CI (job `test` dans `.github/workflows/ci-cd.yml`).
 
 ## Déploiement
 
@@ -258,9 +213,8 @@ Déclencheurs :
 
 | Secret | Usage |
 |---|---|
-| `DATABASE_URL` | URL PostgreSQL utilisée par les tests CI (optionnel — les tests tombent sur SQLite via `conftest.py`) |
 | `HF_TOKEN` | Token HF avec scope *write* sur le Space |
-| `HF_SPACE_ID` | Identifiant du Space cible (ex. `Formation-AI-Engineer/deployez-un-modele-de-machine-learning`) |
+| `HF_SPACE_ID` | Identifiant du Space cible (ex. `lcamara/deployMLModel`) |
 
 ### Mécanique du déploiement
 
@@ -270,38 +224,9 @@ Le job `deploy` force-push le contenu du repo Git vers le repo Git du Space Hugg
 2. Lance `scripts/train_model.py` pour régénérer `models/catboost_attrition.cbm` (le `.cbm` n'est pas versionné)
 3. Expose l'API sur le port `7860` (convention HF Spaces)
 
-### Rollback
+### Base de données en production
 
-Redéployer un tag antérieur :
-```bash
-git push --force hf <tag>:main
-```
-
-Ou `git revert <commit>` sur `main` — le pipeline redéploie automatiquement.
-
-## Authentification et sécurisation
-
-**Statut actuel (POC) : l'API n'a pas d'authentification.** Tout client ayant l'URL du Space peut appeler les endpoints.
-
-### Ce qui est déjà en place
-
-- **Validation stricte des entrées** : Pydantic refuse tout payload invalide (types, bornes, énums), réponse `422` explicite. Protège contre les injections via le schéma d'API.
-- **Secrets hors du code** : `DATABASE_URL`, `HF_TOKEN`, `HF_SPACE_ID` chargés depuis l'environnement. `.env` et `.env.*` gitignorés. Seul `.env.example` est versionné comme template.
-- **Secrets CI** : passés via `${{ secrets.XXX }}` dans GitHub Actions, jamais loggés.
-- **Transactions DB** : chaque prédiction est persistée atomiquement — pas d'état incohérent possible.
-- **Protection de branche** : `main` protégée, merge impossible sans CI verte.
-- **Dépendances figées** avec bornes min/max dans `pyproject.toml`.
-
-### Ce qui serait à ajouter pour la production
-
-| Contrôle | Piste |
-|---|---|
-| Authentification API | Clé d'API en header (`X-API-Key`) ou OAuth2 / JWT selon le contexte d'appel |
-| Rate limiting | `slowapi` côté FastAPI, ou reverse proxy (nginx / Cloudflare) |
-| Journalisation structurée | `structlog` + export vers un agrégateur (Datadog, Grafana Loki…) |
-| Chiffrement au repos | PostgreSQL managé avec chiffrement natif (pas de PII brutes dans les CSV d'exemple, mais à anticiper) |
-| Audit RGPD | Les features incluent `genre`, `statut_marital`, `age` — base légale et durée de conservation à formaliser avant usage réel |
-| Monitoring modèle | Suivi de dérive (distribution `probability`, proportion `Oui`) — voir [fiche modèle](docs/07-model-card.md) |
+L'API en prod pointe vers une instance **PostgreSQL managée chez [Neon](https://neon.tech)**. La connexion est fournie au Space via la variable d'environnement `DATABASE_URL` configurée dans les secrets du Space (HF Settings → Variables and secrets).
 
 ## Structure du projet
 
@@ -318,7 +243,7 @@ Ou `git revert <commit>` sur `main` — le pipeline redéploie automatiquement.
 ├── tests/
 │   ├── unit/             # Tests unitaires
 │   └── functional/       # Tests fonctionnels / end-to-end
-├── docs/                 # Documentation et suivi par étape
+├── docs/                 # Documentation technique
 ├── .github/workflows/    # Pipeline CI/CD (ci-cd.yml)
 ├── .env.example          # Template des variables d'environnement
 ├── pyproject.toml        # Dépendances et configuration
@@ -329,52 +254,20 @@ Ou `git revert <commit>` sur `main` — le pipeline redéploie automatiquement.
 
 ### Composants
 
-```mermaid
-flowchart LR
-    Client[Client HTTP] -->|JSON| API[FastAPI / Uvicorn]
-    API --> Model[(CatBoost<br/>chargé en mémoire)]
-    API --> DB[(PostgreSQL<br/>via SQLAlchemy)]
-```
-
-L'API FastAPI charge le modèle CatBoost une seule fois au démarrage (singleton) et persiste chaque prédiction dans PostgreSQL.
+Le client HTTP envoie une requête JSON à l'API FastAPI (servie par Uvicorn). L'API charge le modèle CatBoost une seule fois au démarrage (singleton en mémoire) et utilise SQLAlchemy pour persister chaque prédiction dans PostgreSQL.
 
 ### Flux d'une requête `/predict`
 
-```mermaid
-sequenceDiagram
-    participant C as Client
-    participant R as routers/prediction.py
-    participant S as services/prediction.py
-    participant M as CatBoost
-    participant DB as PostgreSQL
-
-    C->>R: POST /predict (JSON)
-    R->>R: Validation Pydantic (PredictionInput)
-    R->>S: predict_and_record(data, db)
-    S->>M: predict_proba(X)
-    M-->>S: probabilité
-    S->>DB: INSERT prediction
-    S-->>R: dict résultat
-    R-->>C: PredictionOutput (JSON)
-```
+1. Le client envoie un `POST /predict` avec un payload JSON.
+2. Le router (`app/routers/prediction.py`) valide le payload via le schéma Pydantic `PredictionInput`. Si les types ou bornes ne sont pas respectés, FastAPI retourne `422` immédiatement.
+3. Le router appelle le service `predict_and_record(data, db)` (`app/services/prediction.py`).
+4. Le service applique le préprocessing (`app/preprocessing.py`), passe les features à CatBoost (`predict_proba`) et récupère la probabilité.
+5. Le service insère un enregistrement dans la table `predictions` (input + output + métadonnées) via SQLAlchemy.
+6. Le router renvoie au client la réponse sérialisée par `PredictionOutput`.
 
 Couches : `routers/` (HTTP) → `services/` (métier + DB) → `db/models.py` (entités SQLAlchemy). Les `schemas/` (Pydantic) définissent le contrat d'API en entrée/sortie, distincts des entités DB.
 
-### Deux pipelines
-
-**Training (offline)** — exécuté une fois, avant le déploiement :
-
-```
-data/*.csv → app/preprocessing.py → scripts/train_model.py → models/catboost_attrition.cbm
-```
-
-**Serving (online)** — à chaque requête :
-
-```
-HTTP → schema Pydantic → preprocessing (même logique) → modèle (singleton) → réponse + INSERT DB
-```
-
-Le préprocessing est partagé entre les deux pipelines (`app/preprocessing.py`) pour garantir que les features vues à l'inférence sont strictement identiques à celles vues à l'entraînement.
+Le préprocessing (`app/preprocessing.py`) est partagé entre l'entraînement (`scripts/train_model.py`) et l'inférence pour garantir que les features sont strictement identiques dans les deux cas.
 
 ### Stack technique
 
@@ -411,26 +304,7 @@ docs(readme): add installation steps
 Types courants : `feat`, `fix`, `docs`, `test`, `refactor`, `chore`, `ci`.
 
 ### Versioning
-[SemVer](https://semver.org/lang/fr/) — tags `vMAJOR.MINOR.PATCH`.
-
-## Documentation
-
-Le dossier [`docs/`](docs/) contient le suivi détaillé des 6 étapes de la mission :
-
-| # | Étape | Fichier |
-|---|-------|---------|
-| 0 | Vue d'ensemble | [00-overview.md](docs/00-overview.md) |
-| 1 | Gestion de version | [01-git-versioning.md](docs/01-git-versioning.md) |
-| 2 | CI/CD | [02-cicd.md](docs/02-cicd.md) |
-| 3 | API FastAPI | [03-api-fastapi.md](docs/03-api-fastapi.md) |
-| 4 | PostgreSQL | [04-postgresql.md](docs/04-postgresql.md) |
-| 5 | Tests | [05-tests.md](docs/05-tests.md) |
-| 6 | Documentation | [06-documentation.md](docs/06-documentation.md) |
-| ★ | Fiche technique du modèle | [07-model-card.md](docs/07-model-card.md) |
-
-## Licence
-
-MIT
+[SemVer](https://semver.org/lang/fr/) — tags `vMAJOR.MINOR.PATCH`. Voir la [page Releases](https://github.com/Formation-AI-Engineer/deployez-un-modele-de-machine-learning/releases) pour l'historique des versions.
 
 ## Auteur
 
