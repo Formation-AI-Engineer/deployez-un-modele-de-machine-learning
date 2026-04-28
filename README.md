@@ -1,12 +1,3 @@
----
-title: Deploy ML Model
-emoji: 🚀
-colorFrom: blue
-colorTo: purple
-sdk: docker
-pinned: false
----
-
 # Déployez un modèle de Machine Learning
 
 Projet 5 du parcours AI Engineer — déploiement en production d'un modèle de Machine Learning pour le client fictif Futurisys.
