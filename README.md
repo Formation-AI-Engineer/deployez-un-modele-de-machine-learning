@@ -13,21 +13,22 @@ Projet 5 du parcours AI Engineer — déploiement en production d'un modèle de 
 
 L'objectif : exposer un modèle ML via une API FastAPI, persister les échanges dans une base PostgreSQL, garantir la qualité avec une suite de tests Pytest, et automatiser le déploiement via un pipeline CI/CD (GitHub Actions + Hugging Face Spaces).
 
-## Démo en ligne
-
-- **Space Hugging Face** : <https://huggingface.co/spaces/lcamara/deployMLModel>
-- **Documentation interactive (Swagger UI)** : <https://lcamara-deployMLModel.hf.space/docs>
-
 ## Sommaire
 
+- [Démo en ligne](#démo-en-ligne)
 - [Prérequis](#prérequis)
 - [Installation](#installation)
+- [Structure du projet](#structure-du-projet)
 - [Utilisation](#utilisation)
 - [Tests](#tests)
 - [Déploiement](#déploiement)
-- [Structure du projet](#structure-du-projet)
 - [Architecture](#architecture)
 - [Conventions](#conventions)
+
+## Démo en ligne
+
+- **Space Hugging Face** : <https://huggingface.co/spaces/lcamara/deployMLModel>
+- **Documentation interactive (Swagger UI)** : <https://lcamara-deploymlmodel.hf.space/docs>
 
 ## Prérequis
 
@@ -67,6 +68,28 @@ Variables disponibles (chargées via `app/config.py` avec pydantic-settings) :
 | `APP_ENV` | Environnement applicatif | `dev` \| `test` \| `prod` |
 
 `.env` et `.env.*` sont gitignorés. Seul `.env.example` est versionné comme template.
+
+## Structure du projet
+
+```
+.
+├── app/                  # Code de l'API FastAPI
+│   ├── routers/          # Endpoints (APIRouter)
+│   ├── services/         # Logique métier (prédiction)
+│   └── schemas/          # Modèles Pydantic
+├── db/                   # Scripts base de données, modèles ORM
+├── models/               # Modèles ML sérialisés (gitignored, régénérés via train_model.py)
+├── data/                 # CSV synthétiques du dataset (trackés ; sous-dossiers raw/interim/processed gitignorés)
+├── scripts/              # Scripts utilitaires (train_model.py, seed_db.py)
+├── tests/
+│   ├── unit/             # Tests unitaires
+│   └── functional/       # Tests fonctionnels / end-to-end
+├── docs/                 # Documentation technique
+├── .github/workflows/    # Pipeline CI/CD (ci-cd.yml)
+├── .env.example          # Template des variables d'environnement
+├── pyproject.toml        # Dépendances et configuration
+└── README.md
+```
 
 ## Utilisation
 
@@ -227,28 +250,6 @@ Le job `deploy` force-push le contenu du repo Git vers le repo Git du Space Hugg
 ### Base de données en production
 
 L'API en prod pointe vers une instance **PostgreSQL managée chez [Neon](https://neon.tech)**. La connexion est fournie au Space via la variable d'environnement `DATABASE_URL` configurée dans les secrets du Space (HF Settings → Variables and secrets).
-
-## Structure du projet
-
-```
-.
-├── app/                  # Code de l'API FastAPI
-│   ├── routers/          # Endpoints (APIRouter)
-│   ├── services/         # Logique métier (prédiction)
-│   └── schemas/          # Modèles Pydantic
-├── db/                   # Scripts base de données, modèles ORM
-├── models/               # Modèles ML sérialisés (gitignored, régénérés via train_model.py)
-├── data/                 # CSV synthétiques du dataset (trackés ; sous-dossiers raw/interim/processed gitignorés)
-├── scripts/              # Scripts utilitaires (train_model.py, seed_db.py)
-├── tests/
-│   ├── unit/             # Tests unitaires
-│   └── functional/       # Tests fonctionnels / end-to-end
-├── docs/                 # Documentation technique
-├── .github/workflows/    # Pipeline CI/CD (ci-cd.yml)
-├── .env.example          # Template des variables d'environnement
-├── pyproject.toml        # Dépendances et configuration
-└── README.md
-```
 
 ## Architecture
 
